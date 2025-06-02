@@ -1,5 +1,3 @@
-  
-
 /**
  * Node modules
  */
@@ -26,17 +24,26 @@ import { Button } from '../components/Button';
 import { CircularProgress, LinearProgress } from '../components/Progress';
 import Logo from '../components/Logo';
 
+/**
+ * Appwrite imports
+ */
+import { account } from '../lib/appwrite';
+
 const Login = () => {
-  // Get error data from form submission using useActionData (likely from React Router).
   const error = useActionData();
-
-  // Get navigation state e.g. loading/submitting etc
   const navigation = useNavigation();
-
   const { showSnackbar } = useSnackbar();
 
+  // Appwrite Google OAuth handler
+  const handleGoogleLogin = () => {
+    account.createOAuth2Session(
+      'google',
+      window.location.origin + '/',
+      window.location.origin + '/login'
+    );
+  };
+
   useEffect(() => {
-    // Show snackbar with the provided error message
     if (error?.message) {
       showSnackbar({
         message: error.message,
@@ -61,6 +68,27 @@ const Login = () => {
             <p className='text-bodyLarge text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant mt-1 mb-5 text-center px-2'>
               Enter your Phoenix account details.
             </p>
+
+            {/* Appwrite Google Login Button */}
+            <Button
+              type='button'
+              variant='outlined'
+              className='flex items-center justify-center gap-2'
+              onClick={handleGoogleLogin}
+            >
+              <img
+                src='https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg'
+                alt='Google'
+                className='w-5 h-5'
+              />
+              Login with Google
+            </Button>
+
+            <div className='relative my-2 flex items-center'>
+              <span className='flex-grow border-t border-light-outlineVariant dark:border-dark-outlineVariant'></span>
+              <span className='mx-2 text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant text-labelMedium'>or</span>
+              <span className='flex-grow border-t border-light-outlineVariant dark:border-dark-outlineVariant'></span>
+            </div>
 
             <Form
               method='POST'

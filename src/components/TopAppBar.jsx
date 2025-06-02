@@ -1,5 +1,3 @@
-  
-
 /**
  * Node modules
  */
@@ -34,43 +32,51 @@ import MenuItem from './MenuItem';
 import { LinearProgress } from './Progress';
 import Logo from './Logo';
 
+// Incognito SVG icon (inline)
+const IncognitoIcon = () => (
+  <svg
+    width="32"
+    height="32"
+    viewBox="0 0 32 32"
+    fill="none"
+    className="rounded-full bg-light-outlineVariant dark:bg-dark-outlineVariant"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="16" cy="16" r="16" fill="none" />
+    <g>
+      <path
+        d="M10.5 20.5C10.5 18.0147 13.2386 16 16 16C18.7614 16 21.5 18.0147 21.5 20.5"
+        stroke="#888"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <ellipse cx="12.5" cy="13.5" rx="1.5" ry="2" fill="#888" />
+      <ellipse cx="19.5" cy="13.5" rx="1.5" ry="2" fill="#888" />
+      <rect x="11" y="10" width="10" height="2" rx="1" fill="#888" />
+    </g>
+  </svg>
+);
+
 const TopAppBar = ({ toggleSidebar }) => {
-  // - useNavigation: Provides navigation state (loading, idle, submitting, etc.)
   const navigation = useNavigation();
-
-  // - useNavigate: Function for programmatically navigating between routes.
   const navigate = useNavigate();
-
-  /**
-   * - conversations: Array containing all conversation data.
-   * - user: User data for the currently logged-in user.
-   */
   const { conversations, user } = useLoaderData();
-
-  /**
-   * params Object containing URL parameters, including the conversationId.
-   */
   const params = useParams();
-
-  /**
-   * Obtain the useSubmit hook for handling form submissions:
-   * - submit: Function for submitting forms and triggering server-side actions.
-   */
   const submit = useSubmit();
-
-  /**
-   * Use a custom hook to manage the menu's show state.
-   * 'showMenu' holds the current state,
-   * and 'setShowMenu' is a function to toggle the menu.
-   */
   const [showMenu, setShowMenu] = useToggle();
 
-  /**
-   * Check if the current navigation state is 'loading' and if there is no form data associated with the navigation.
-   * This condition typically signifies a normal page load,
-   * where the page is loading for the first time or is being reloaded without submitting a form.
-   */
   const isNormalLoad = navigation.state === 'loading' && !navigation.formData;
+
+  // Check if user has a Google profile picture (Appwrite stores it in user.prefs or user.emailVerification if set up)
+  // You may need to adjust this depending on your Appwrite user object structure
+  const googlePhoto =
+    user?.prefs?.picture ||
+    user?.prefs?.googlePicture ||
+    user?.prefs?.avatar ||
+    user?.photoURL ||
+    user?.avatarUrl ||
+    user?.imageUrl ||
+    null;
 
   return (
     <header className='relative flex justify-between items-center h-16 px-4'>
@@ -90,7 +96,6 @@ const TopAppBar = ({ toggleSidebar }) => {
           icon='delete'
           classes='ms-auto me-1 lg:hidden'
           onClick={() => {
-            // Find the current conversation title
             const { title } = conversations.documents.find(
               ({ $id }) => params.conversationId === $id,
             );
@@ -106,7 +111,16 @@ const TopAppBar = ({ toggleSidebar }) => {
 
       <div className='menu-wrapper'>
         <IconBtn onClick={setShowMenu}>
-          <Avatar name={user.name} />
+          {googlePhoto ? (
+            <img
+              src={googlePhoto}
+              alt={user.name}
+              className="w-8 h-8 rounded-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <IncognitoIcon />
+          )}
         </IconBtn>
 
         <Menu classes={showMenu ? 'active' : ''}>

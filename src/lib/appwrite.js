@@ -1,5 +1,3 @@
-  
-
 /**
  * Node modules
  */
@@ -12,7 +10,7 @@ const client = new Client();
 
 client
   .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID)
-  .setEndpoint('https://cloud.appwrite.io/v1');
+  .setEndpoint(import.meta.env.VITE_APPWRITE_PUBLIC_ENDPOINT); // Use env for endpoint
 
 /**
  * Initial appwrite account

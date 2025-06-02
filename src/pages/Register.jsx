@@ -116,7 +116,7 @@ const Register = () => {
           </div>
 
           <p className='mt-auto mx-auto text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant text-bodyMedium lg:mx-0'>
-            &copy; 2024  . All right reserved.
+            &copy; 2024 mattxslv. All right reserved.
           </p>
         </div>
 
