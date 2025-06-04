@@ -13,6 +13,7 @@
     "@google/generative-ai": "^0.21.0",
     "@tailwindcss/typography": "^0.5.16",
     "appwrite": "^16.0.2",
+    "blueimp-md5": "^2.19.0",
     "firebase": "^11.8.1",
     "framer-motion": "^11.11.9",
     "prop-types": "^15.8.1",

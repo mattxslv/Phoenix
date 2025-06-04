@@ -122,8 +122,8 @@ const PromptField = () => {
         contentEditable={true}
         role='textbox'
         aria-multiline={true}
-        aria-label='Enter a prompt here'
-        data-placeholder='Enter a prompt here'
+        aria-label='Ask anything'
+        data-placeholder='Ask anything'
         variants={promptFieldChildrenVariant}
         ref={inputField}
         onInput={handleInputChange}

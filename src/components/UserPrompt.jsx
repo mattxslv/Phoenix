@@ -1,10 +1,7 @@
-  
-
 /**
  * Node modules
  */
 import PropTypes from 'prop-types';
-import { useLoaderData } from 'react-router-dom';
 import { useRef, useState, useEffect } from 'react';
 
 /**
@@ -15,49 +12,39 @@ import { useToggle } from '../hooks/useToggle';
 /**
  * Components
  */
-import Avatar from './Avatar';
 import { IconBtn } from './Button';
 
 const UserPrompt = ({ text }) => {
-  // Retrieve the user data from the loader using the useLoaderData hook.
-  const { user } = useLoaderData();
-
-  // Use the useToggle hook to manage the expanded state of the user prompt text.
   const [isExpanded, toggleExpand] = useToggle();
-
-  // Create a ref to access the text box element in the DOM.
   const textBoxRef = useRef();
-
-  // Initialize the hasMoreContent state, indicating whether the content exceeds the visible height of the text box.
   const [hasMoreContent, setMoreContent] = useState(false);
 
-  /** Use useEffect to update the hasMoreContent state whenever the text box ref changes.
-   * This ensures that the state is updated correctly if the text box content changes.
-   */
   useEffect(() => {
     setMoreContent(
-      textBoxRef.current.scrollHeight > textBoxRef.current.clientHeight,
+      textBoxRef.current && textBoxRef.current.scrollHeight > textBoxRef.current.clientHeight,
     );
-  }, [textBoxRef]);
+  }, [textBoxRef, text]);
 
   return (
-    <div className='grid grid-cols-1 items-start gap-1 py-4 md:grid-cols-[max-content,minmax(0,1fr),max-content] md:gap-5'>
-      <Avatar name={user?.name} />
-
-      <p
-        className={`text-bodyLarge pt-1 whitespace-pre-wrap ${!isExpanded ? 'line-clamp-4' : ''}`}
-        ref={textBoxRef}
-      >
-        {text}
-      </p>
-
-      {hasMoreContent && (
-        <IconBtn
-          icon={isExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-          onClick={toggleExpand}
-          title={isExpanded ? 'Collapse text' : 'Expand text'}
-        />
-      )}
+    <div className="flex justify-end w-full">
+      <div className="bg-white/90 text-gray-900 px-5 py-2 rounded-full max-w-[70%] w-fit min-w-0 text-right shadow break-words border border-gray-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
+        <span
+          className={`text-bodyLarge whitespace-pre-wrap ${!isExpanded ? 'line-clamp-4' : ''}`}
+          ref={textBoxRef}
+          style={{ marginBottom: 0, marginTop: 0, display: 'block' }}
+        >
+          {text}
+        </span>
+        {hasMoreContent && (
+          <div className="flex justify-end">
+            <IconBtn
+              icon={isExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+              onClick={toggleExpand}
+              title={isExpanded ? 'Collapse text' : 'Expand text'}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

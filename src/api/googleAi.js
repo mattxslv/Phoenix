@@ -22,9 +22,11 @@ const getConversationTitle = async (userPrompt) => {
       
       Prompt: ${userPrompt}`,
     );
-    return result.response.text();
+    // Always return a string, never undefined or null
+    return result?.response?.text?.() || '';
   } catch (err) {
     console.log(`Error generating conversation title: ${err.message}`);
+    return '';
   }
 };
 
@@ -41,11 +43,11 @@ const getAiResponse = async (userPrompt, chats = []) => {
     history.push(
       {
         role: 'user',
-        parts: [{ text: user_prompt }],
+        parts: [{ text: user_prompt || '' }],
       },
       {
         role: 'model',
-        parts: [{ text: ai_response }],
+        parts: [{ text: ai_response || '' }],
       },
     );
   });
@@ -58,9 +60,13 @@ const getAiResponse = async (userPrompt, chats = []) => {
     const chat = model.startChat({ history });
     const result = await chat.sendMessage(userPrompt);
 
-    return result.response.text();
+    // Always return a string, never undefined or null
+    const responseText = result?.response?.text?.() || '';
+    // Remove accidental "undefined" at the end if present
+    return responseText.replace(/undefined\s*$/i, '').trim();
   } catch (err) {
     console.log(`Error generating AI response: ${err.message}`);
+    return '';
   }
 };
 

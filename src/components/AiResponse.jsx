@@ -1,5 +1,3 @@
-
-
 /**
  * Node modules
  */
@@ -143,7 +141,7 @@ const AiResponse = ({ aiResponse, children }) => {
             remarkPlugins={[remarkGfm]}
             components={{ code }}
           >
-            {aiResponse}
+            {aiResponse || ''}
           </Markdown>
         </div>
       )}

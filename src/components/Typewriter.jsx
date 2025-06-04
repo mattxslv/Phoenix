@@ -1,24 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-const Typewriter = ({ text, speed = 30, onDone, render }) => {
+const Typewriter = ({ text = '', speed = 30, onDone, render }) => {
   const [displayed, setDisplayed] = useState('');
+  const startTimeRef = useRef();
+  const rafRef = useRef();
 
   useEffect(() => {
+    if (!text) {
+      setDisplayed('');
+      return;
+    }
     setDisplayed('');
-    if (!text) return;
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayed((prev) => prev + text[i]);
-      i++;
-      if (i >= text.length) {
-        clearInterval(interval);
-        if (onDone) onDone();
+    startTimeRef.current = performance.now();
+
+    const animate = (now) => {
+      const elapsed = now - startTimeRef.current;
+      const charsToShow = Math.min(
+        text.length,
+        Math.floor(elapsed / speed)
+      );
+      setDisplayed(text.slice(0, charsToShow));
+      if (charsToShow < text.length) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else if (onDone) {
+        onDone();
       }
-    }, speed);
-    return () => clearInterval(interval);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [text, speed, onDone]);
 
-  return render ? render(displayed) : <span>{displayed}</span>;
+  const safeDisplayed =
+    typeof displayed === 'string'
+      ? displayed.replace(/undefined\s*$/i, '')
+      : '';
+
+  return render ? render(safeDisplayed) : <span>{safeDisplayed}</span>;
 };
 
 export default Typewriter;
