@@ -146,12 +146,25 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        className={`sidebar ${isSidebarOpen ? 'active' : ''} w-80`} // <-- Add w-48 or your preferred width
+        initial={false}
+        animate={{ x: isSidebarOpen ? 0 : -320 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className={`
+    sidebar
+    w-80
+    fixed
+    top-0
+    left-0
+    h-full
+    z-40
+    bg-white
+    dark:bg-neutral-900
+    transition-transform
+    duration-300
+    lg:static
+  `}
       >
-        <div className='sidebar-inner'>
+        <div className="sidebar-inner h-full flex flex-col" style={{ opacity: 1, visibility: 'visible', zIndex: 10000 }}>
           <div className='h-16 grid items-center px-4 mb-4'>
             <Logo />
           </div>
