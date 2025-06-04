@@ -18,6 +18,16 @@ import deleteConversation from '../utils/deleteConversation';
 import Logo from './Logo';
 import { IconBtn } from './Button';
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return isDesktop;
+}
+
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   // Extract conversations from loader data if it exists.
 
@@ -143,16 +153,22 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     // if (typeof toggleSidebar === 'function') toggleSidebar();
   };
 
+  const isDesktop = useIsDesktop();
+
   return (
     <>
       <motion.div
         initial={false}
-        animate={{ x: isSidebarOpen ? 0 : -320 }}
+        animate={
+          isDesktop
+            ? { x: 0 }
+            : { x: isSidebarOpen ? 0 : -320 }
+        }
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className={`
     sidebar
     w-80
-    fixed
+    ${isDesktop ? 'static' : 'fixed'}
     top-0
     left-0
     h-full
@@ -161,7 +177,6 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     dark:bg-neutral-900
     transition-transform
     duration-300
-    lg:static
   `}
       >
         <div className="sidebar-inner h-full flex flex-col" style={{ opacity: 1, visibility: 'visible', zIndex: 10000 }}>
