@@ -50,6 +50,9 @@ const getAiResponse = async (userPrompt, chats = []) => {
     );
   });
 
+  // Debug: Log the chat history being sent to the model
+  console.log('Sending chat history to Gemini:', history);
+
   try {
     model.generationConfig = { temperature: 1.5 };
     const chat = model.startChat({ history });

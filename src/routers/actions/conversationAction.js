@@ -1,7 +1,8 @@
 /**
  * Custom modules
  */
-import { account, databases } from '../../lib/appwrite'; // import account to get user info
+import { Query } from 'appwrite';
+import { account, databases } from '../../lib/appwrite';
 import { getAiResponse } from '../../api/googleAi';
 import generateID from '../../utils/generateID';
 
@@ -21,36 +22,35 @@ const conversationAction = async ({ request, params }) => {
   const formData = await request.formData();
   const userPrompt = formData.get('user_prompt');
 
-  let chatHistory = [];
-  let aiResponse = '';
-  let user = null;
-
   // Get logged-in user info
+  let user = null;
   try {
     user = await account.get();
   } catch (err) {
     console.log(`Error getting user: ${err.message}`);
-    // Optionally: return or redirect if no user
   }
 
-  // Get previous chats from conversation document
+  // Fetch previous chat messages for this conversation
+  let chatHistory = [];
   try {
-    const conversationDoc = await databases.getDocument(
+    const chatDocs = await databases.listDocuments(
       import.meta.env.VITE_APPWRITE_DATABASE_ID,
-      import.meta.env.VITE_APPWRITE_COLLECTION_CONVERSATIONS_ID,
-      conversationId,
+      import.meta.env.VITE_APPWRITE_COLLECTION_CHATS_ID,
+      [
+        Query.equal('conversation', conversationId),
+        Query.orderAsc('$createdAt'),
+      ]
     );
-
-    const chats = Array.isArray(conversationDoc.chats) ? conversationDoc.chats : [];
-    chatHistory = chats.map(({ user_prompt, ai_response }) => ({
-      user_prompt,
-      ai_response,
+    chatHistory = chatDocs.documents.map(doc => ({
+      user_prompt: doc.user_prompt,
+      ai_response: doc.ai_response,
     }));
   } catch (err) {
-    console.log(`Error getting chat: ${err.message}`);
+    console.log(`Error fetching chat history: ${err.message}`);
   }
 
   // Get AI response based on user prompt and chat history
+  let aiResponse = '';
   try {
     aiResponse = await getAiResponse(userPrompt, chatHistory);
   } catch (err) {
@@ -68,36 +68,11 @@ const conversationAction = async ({ request, params }) => {
         user_prompt: userPrompt,
         ai_response: aiResponse,
         conversation: conversationId,
-        user_id: user?.$id || null, // use null if no user found
+        user_id: user?.$id || null,
       },
     );
   } catch (err) {
     console.log(`Error storing chat: ${err.message}`);
-  }
-
-  // Update conversation document to append new chat to chats array
-  try {
-    const conversationDoc = await databases.getDocument(
-      import.meta.env.VITE_APPWRITE_DATABASE_ID,
-      import.meta.env.VITE_APPWRITE_COLLECTION_CONVERSATIONS_ID,
-      conversationId,
-    );
-
-    const updatedChats = Array.isArray(conversationDoc.chats) ? conversationDoc.chats : [];
-
-    updatedChats.push({
-      user_prompt: userPrompt,
-      ai_response: aiResponse,
-    });
-
-    await databases.updateDocument(
-      import.meta.env.VITE_APPWRITE_DATABASE_ID,
-      import.meta.env.VITE_APPWRITE_COLLECTION_CONVERSATIONS_ID,
-      conversationId,
-      { chats: updatedChats }
-    );
-  } catch (err) {
-    console.log(`Error updating conversation chats: ${err.message}`);
   }
 
   return null;

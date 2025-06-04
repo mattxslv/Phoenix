@@ -26,14 +26,13 @@ import { useToggle } from '../hooks/useToggle';
  * Components
  */
 import { IconBtn } from './Button';
-import Avatar from './Avatar';
 import Menu from './Menu';
 import MenuItem from './MenuItem';
 import { LinearProgress } from './Progress';
 import Logo from './Logo';
 
-// Incognito SVG icon (inline)
-const IncognitoIcon = () => (
+// Default user SVG icon (generic user silhouette)
+const DefaultUserIcon = () => (
   <svg
     width="32"
     height="32"
@@ -44,15 +43,8 @@ const IncognitoIcon = () => (
   >
     <circle cx="16" cy="16" r="16" fill="none" />
     <g>
-      <path
-        d="M10.5 20.5C10.5 18.0147 13.2386 16 16 16C18.7614 16 21.5 18.0147 21.5 20.5"
-        stroke="#888"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <ellipse cx="12.5" cy="13.5" rx="1.5" ry="2" fill="#888" />
-      <ellipse cx="19.5" cy="13.5" rx="1.5" ry="2" fill="#888" />
-      <rect x="11" y="10" width="10" height="2" rx="1" fill="#888" />
+      <circle cx="16" cy="13" r="6" fill="#888" />
+      <ellipse cx="16" cy="24" rx="9" ry="5" fill="#888" />
     </g>
   </svg>
 );
@@ -67,12 +59,12 @@ const TopAppBar = ({ toggleSidebar }) => {
 
   const isNormalLoad = navigation.state === 'loading' && !navigation.formData;
 
-  // Check if user has a Google profile picture (Appwrite stores it in user.prefs or user.emailVerification if set up)
-  // You may need to adjust this depending on your Appwrite user object structure
+  // Try to get Google profile photo from all possible locations
   const googlePhoto =
     user?.prefs?.picture ||
     user?.prefs?.googlePicture ||
     user?.prefs?.avatar ||
+    user?.prefs?.profileImage ||
     user?.photoURL ||
     user?.avatarUrl ||
     user?.imageUrl ||
@@ -109,7 +101,7 @@ const TopAppBar = ({ toggleSidebar }) => {
         />
       )}
 
-      <div className='menu-wrapper'>
+      <div className='menu-wrapper flex items-center gap-2'>
         <IconBtn onClick={setShowMenu}>
           {googlePhoto ? (
             <img
@@ -119,7 +111,7 @@ const TopAppBar = ({ toggleSidebar }) => {
               referrerPolicy="no-referrer"
             />
           ) : (
-            <IncognitoIcon />
+            <DefaultUserIcon />
           )}
         </IconBtn>
 

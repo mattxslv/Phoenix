@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "@tailwindcss/typography": "^0.5.16",
     "appwrite": "^16.0.2",
     "firebase": "^11.8.1",
     "framer-motion": "^11.11.9",
@@ -18,7 +19,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^9.1.0",
     "react-router-dom": "^6.27.0",
     "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.0"
