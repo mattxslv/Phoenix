@@ -139,7 +139,8 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   // Handler for creating a new chat
   const handleNewChat = () => {
     navigate('/'); // Use React Router navigation (no reload)
-    if (typeof toggleSidebar === 'function') toggleSidebar();
+    // Remove or comment out the next line to prevent sidebar toggling
+    // if (typeof toggleSidebar === 'function') toggleSidebar();
   };
 
   return (
@@ -148,7 +149,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className={`sidebar ${isSidebarOpen ? 'active' : ''} w-64`} // <-- Add w-48 or your preferred width
+        className={`sidebar ${isSidebarOpen ? 'active' : ''} w-80`} // <-- Add w-48 or your preferred width
       >
         <div className='sidebar-inner'>
           <div className='h-16 grid items-center px-4 mb-4'>
@@ -188,7 +189,6 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                       to={item.$id}
                       className='nav-link relative z-10'
                       title={item.title}
-                      onClick={toggleSidebar}
                       tabIndex={isRenaming ? -1 : 0}
                     >
                       <span className='material-symbols-rounded icon-small'>chat_bubble</span>
