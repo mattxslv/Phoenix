@@ -18,9 +18,11 @@ import generateID from '../../utils/generateID';
  * @throws Will log an error message to the console if storing data fails.
  */
 const conversationAction = async ({ request, params }) => {
-  const { conversationId } = params;
   const formData = await request.formData();
+  const editingId = formData.get('editing_id');
   const userPrompt = formData.get('user_prompt');
+  const conversationId = params.conversationId;
+  console.log('editingId:', editingId, 'userPrompt:', userPrompt);
 
   // Get logged-in user info
   let user = null;
@@ -41,7 +43,11 @@ const conversationAction = async ({ request, params }) => {
         Query.orderAsc('$createdAt'),
       ]
     );
-    chatHistory = chatDocs.documents.map(doc => ({
+    // For editing, exclude the one being edited; for new, include all
+    chatHistory = editingId
+      ? chatDocs.documents.filter(doc => doc.$id !== editingId)
+      : chatDocs.documents;
+    chatHistory = chatHistory.map(doc => ({
       user_prompt: doc.user_prompt,
       ai_response: doc.ai_response,
     }));
@@ -49,7 +55,7 @@ const conversationAction = async ({ request, params }) => {
     console.log(`Error fetching chat history: ${err.message}`);
   }
 
-  // Get AI response based on user prompt and chat history
+  // Always get AI response
   let aiResponse = '';
   try {
     aiResponse = await getAiResponse(userPrompt, chatHistory);
@@ -57,7 +63,64 @@ const conversationAction = async ({ request, params }) => {
     console.log(`Error getting Gemini response: ${err.message}`);
   }
 
-  // Store new chat document in separate chats collection
+  if (editingId) {
+    // Fetch all chat documents for this conversation, sorted by $createdAt
+    let chatDocs = [];
+    try {
+      const response = await databases.listDocuments(
+        import.meta.env.VITE_APPWRITE_DATABASE_ID,
+        import.meta.env.VITE_APPWRITE_COLLECTION_CHATS_ID,
+        [
+          Query.equal('conversation', conversationId),
+          Query.orderAsc('$createdAt'),
+        ]
+      );
+      chatDocs = response.documents;
+    } catch (err) {
+      console.log(`Error fetching chat docs: ${err.message}`);
+    }
+
+    // Find the edited chat
+    const editedChat = chatDocs.find(doc => doc.$id === editingId);
+
+    // If found, delete all chats after it
+    if (editedChat) {
+      const editedTime = editedChat.$createdAt;
+      const toDelete = chatDocs.filter(doc => doc.$createdAt > editedTime);
+      for (const doc of toDelete) {
+        try {
+          await databases.deleteDocument(
+            import.meta.env.VITE_APPWRITE_DATABASE_ID,
+            import.meta.env.VITE_APPWRITE_COLLECTION_CHATS_ID,
+            doc.$id
+          );
+        } catch (err) {
+          console.log(`Error deleting chat ${doc.$id}: ${err.message}`);
+        }
+      }
+    }
+
+    // Update the existing chat document
+    try {
+      console.log('Attempting to update:', editingId, userPrompt);
+      await databases.updateDocument(
+        import.meta.env.VITE_APPWRITE_DATABASE_ID,
+        import.meta.env.VITE_APPWRITE_COLLECTION_CHATS_ID,
+        editingId,
+        {
+          title: userPrompt.slice(0, 50),
+          user_prompt: userPrompt,
+          ai_response: aiResponse,
+        }
+      );
+      console.log('Update successful');
+      return null;
+    } catch (err) {
+      console.log(`Error updating chat: ${err.message}`);
+    }
+  }
+
+  // If not editing, create a new chat as usual
   try {
     await databases.createDocument(
       import.meta.env.VITE_APPWRITE_DATABASE_ID,

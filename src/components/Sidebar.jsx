@@ -179,7 +179,16 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     duration-300
   `}
       >
-        <div className="sidebar-inner h-full flex flex-col" style={{ opacity: 1, visibility: 'visible', zIndex: 10000 }}>
+        <div
+          className="sidebar-inner h-full flex flex-col"
+          style={{
+            opacity: 1,
+            visibility: 'visible',
+            zIndex: 10000,
+            overflowY: 'auto', // <-- Add this line
+            height: '100vh',   // <-- Ensure it fills the viewport
+          }}
+        >
           <div className='h-16 grid items-center px-4 mb-4'>
             <Logo />
           </div>
