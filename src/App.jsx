@@ -1,9 +1,8 @@
-
 /**
  * Node modules
  */
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Outlet,
   useParams,
@@ -26,6 +25,7 @@ import TopAppBar from './components/TopAppBar';
 import Sidebar from './components/Sidebar';
 import Greetings from './pages/Greetings';
 import PromptField from './components/PromptField';
+import Conversation from './pages/Conversation';
 
 const App = () => {
   // Get the URL parameters.
@@ -91,6 +91,10 @@ const App = () => {
    */
   const isNormalLoad = navigation.state === 'loading' && !navigation.formData;
 
+  // Local state for prompt input
+  const [promptInputValue, setPromptInputValue] = useState('');
+  const promptInputRef = useRef();
+
   return (
     <>
       {/* Meta title */}
@@ -146,6 +150,18 @@ const App = () => {
           </div>
         </div>
       </div>
+
+      <Conversation
+        setPromptInputValue={setPromptInputValue}
+        setPromptInputRef={promptInputRef}
+      />
+      <input
+        ref={promptInputRef}
+        value={promptInputValue}
+        onChange={(e) => setPromptInputValue(e.target.value)}
+        className='your-input-class'
+        placeholder='Type your prompt here...'
+      />
     </>
   );
 };

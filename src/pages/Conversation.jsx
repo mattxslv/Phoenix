@@ -75,7 +75,7 @@ function CopyButton({ copied, onCopy, disabled }) {
   );
 }
 
-const Conversation = () => {
+const Conversation = ({ setPromptInputRef, setPromptInputValue }) => {
   /**
    * Extract the conversation data (title and chats) from the loader data,
    * handling potential undefined values using optional chaining.
@@ -83,7 +83,10 @@ const Conversation = () => {
   const loaderData = useLoaderData();
   const conversation = loaderData?.conversation;
   const title = conversation?.title || 'Conversation';
-  const chats = conversation?.chats || [];
+  const chatsData = conversation?.chats || [];
+
+  // Local state for chats (for future extensibility, but not removing on edit)
+  const [chats] = useState(chatsData);
 
   // Retrieve the prompt preloader value using the custom hook.
   const { promptPreloaderValue } = usePromptPreloader();
@@ -94,6 +97,14 @@ const Conversation = () => {
   // State to track which AI response is being copied (by chat id)
   const [copiedId, setCopiedId] = useState(null);
   const [typewriterDoneId, setTypewriterDoneId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+
+  // Handler for editing a prompt: set editingId, set input value, focus input
+  const handleEditPrompt = (chat) => {
+    setEditingId(chat.$id);
+    if (typeof setPromptInputValue === 'function') setPromptInputValue(chat.user_prompt);
+    if (setPromptInputRef && setPromptInputRef.current) setPromptInputRef.current.focus();
+  };
 
   return (
     <>
@@ -112,8 +123,34 @@ const Conversation = () => {
             <div key={chat.$id} className="flex flex-col gap-6 my-8">
               {/* UserPrompt aligned right */}
               <div className="flex justify-end">
-                <div className="bg-white/90 text-gray-900 px-5 py-2 rounded-full max-w-[70%] text-right shadow break-words border border-gray-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
-                  {chat.user_prompt}
+                <div className="relative max-w-[70%] w-fit group">
+                  {/* Only hide the user prompt bubble if editing */}
+                  {editingId === chat.$id ? null : (
+                    <div className="bg-white/90 text-gray-900 px-5 py-2 rounded-full text-right shadow break-words border border-gray-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
+                      <span className="break-words text-right">{chat.user_prompt}</span>
+                    </div>
+                  )}
+                  {/* Action buttons, shown only on hover, bottom right OUTSIDE the bubble */}
+                  <div className="absolute -bottom-8 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <IconBtn
+                      icon="edit"
+                      title="Edit prompt"
+                      size="small"
+                      classes="opacity-70 hover:opacity-100 transition"
+                      onClick={() => handleEditPrompt(chat)}
+                    />
+                    <IconBtn
+                      icon={copiedId === chat.$id ? "check" : "content_copy"}
+                      title={copiedId === chat.$id ? "Copied!" : "Copy"}
+                      size="small"
+                      classes="opacity-70 hover:opacity-100 transition"
+                      onClick={() => {
+                        navigator.clipboard.writeText(chat.user_prompt || '');
+                        setCopiedId(chat.$id);
+                        setTimeout(() => setCopiedId(null), 1200);
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
