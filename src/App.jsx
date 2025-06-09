@@ -159,8 +159,8 @@ const App = () => {
         ref={promptInputRef}
         value={promptInputValue}
         onChange={(e) => setPromptInputValue(e.target.value)}
+        placeholder='Ask anything'
         className='your-input-class'
-        placeholder='Type your prompt here...'
       />
     </>
   );

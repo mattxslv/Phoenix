@@ -1,10 +1,8 @@
-  
-
 /**
  * Node modules
  */
 import { motion } from 'framer-motion';
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useNavigation, useSubmit, useParams } from 'react-router-dom';
 
 /**
@@ -12,66 +10,55 @@ import { useNavigation, useSubmit, useParams } from 'react-router-dom';
  */
 import { IconBtn } from './Button';
 
-const PromptField = () => {
-  // 'inputField' and 'inputFieldContainer' hold references to their DOM elements.
-  const inputField = useRef();
-  const inputFieldContainer = useRef();
+const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) => {
+  // Provide a fallback ref if none is passed
+  const internalInputRef = useRef(null);
+  const inputRef = externalInputRef ?? internalInputRef;
+  const inputFieldContainer = useRef(null);
 
-  // manual form submission
   const submit = useSubmit();
-
-  // initial navigation for checking state
   const navigation = useNavigation();
-
-  // Retrieve the conversationId from url path
   const { conversationId } = useParams();
 
-  // State for input field
-  const [placeholderShown, setPlaceholderShown] = useState(true);
-  const [isMultiline, setMultiline] = useState(false);
-  const [inputValue, setInputValue] = useState('');
+  // Placeholder and multiline logic
+  const placeholderShown = !inputValue;
+  const isMultiline = inputFieldContainer.current?.clientHeight > 64;
 
-  // Handle input field input change
+  // Keep contentEditable in sync with inputValue
+  useEffect(() => {
+    if (inputRef.current && inputRef.current.innerText !== inputValue) {
+      inputRef.current.innerText = inputValue || '';
+    }
+  }, [inputValue, inputRef]);
+
   const handleInputChange = useCallback(() => {
-    if (inputField.current.innerText === '\n')
-      inputField.current.innerHTML = '';
+    if (inputRef.current) {
+      setInputValue(inputRef.current.innerText.trim());
+    }
+  }, [setInputValue, inputRef]);
 
-    setPlaceholderShown(!inputField.current.innerText);
-    setMultiline(inputFieldContainer.current.clientHeight > 64);
-    setInputValue(inputField.current.innerText.trim());
-  }, []);
-
-  // Move cursor to the end after paste text in input field
-  const moveCursorToEnd = useCallback(() => {
-    const editableElem = inputField.current;
-    const range = document.createRange();
-    const selection = window.getSelection();
-
-    // Set the range to the last child of the editable element
-    range.selectNodeContents(editableElem);
-    range.collapse(false); // Collapse the range to the end
-
-    // Clear existing selections and add the new range
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }, []);
-
-  // Handle paste text
   const handlePaste = useCallback(
     (e) => {
       e.preventDefault();
-      inputField.current.innerText += e.clipboardData.getData('text');
-      handleInputChange();
-      moveCursorToEnd();
+      const text = e.clipboardData.getData('text');
+      if (inputRef.current) {
+        inputRef.current.innerText += text;
+        handleInputChange();
+        // Move cursor to end
+        const editableElem = inputRef.current;
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(editableElem);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
     },
-    [handleInputChange, moveCursorToEnd],
+    [handleInputChange, inputRef],
   );
 
-  // Handle submit
   const handleSubmit = useCallback(() => {
-    // Prevent submission if the input is empty or form submission is ongoing.
     if (!inputValue || navigation.state === 'submitting') return;
-
     submit(
       {
         user_prompt: inputValue,
@@ -83,12 +70,10 @@ const PromptField = () => {
         action: `/${conversationId || ''}`,
       },
     );
+    setInputValue('');
+    if (inputRef.current) inputRef.current.innerText = '';
+  }, [inputValue, navigation.state, submit, conversationId, setInputValue, inputRef]);
 
-    inputField.current.innerHTML = '';
-    handleInputChange();
-  }, [handleInputChange, inputValue, navigation.state, submit, conversationId]);
-
-  // Defines a Framer Motion variant for the prompt field, controlling its animation based on its visibility state.
   const promptFieldVariant = {
     hidden: { scaleX: 0 },
     visible: {
@@ -103,7 +88,6 @@ const PromptField = () => {
     },
   };
 
-  // Defines a Framer Motion variant for the prompt field children, controlling its animation based on its visibility state.
   const promptFieldChildrenVariant = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
@@ -113,25 +97,23 @@ const PromptField = () => {
     <motion.div
       className={`prompt-field-container ${isMultiline ? 'rounded-large' : ''}`}
       variants={promptFieldVariant}
-      initial='hidden'
-      animate='visible'
+      initial="hidden"
+      animate="visible"
       ref={inputFieldContainer}
     >
       <motion.div
         className={`prompt-field ${placeholderShown ? '' : 'after:hidden'}`}
-        contentEditable={true}
-        role='textbox'
-        aria-multiline={true}
-        aria-label='Ask anything'
-        data-placeholder='Ask anything'
+        contentEditable
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Ask anything"
+        data-placeholder="Ask anything"
         variants={promptFieldChildrenVariant}
-        ref={inputField}
+        ref={inputRef}
         onInput={handleInputChange}
         onPaste={handlePaste}
         onKeyDown={(e) => {
-          // Handle case where user press only 'Enter' key
           if (e.key === 'Enter' && !e.shiftKey) {
-            // Submit input
             e.preventDefault();
             handleSubmit();
           }
@@ -139,15 +121,12 @@ const PromptField = () => {
       />
 
       <IconBtn
-        icon='send'
-        title='Submit'
-        size='large'
-        classes='ms-auto'
-        variants={promptFieldChildrenVariant}
+        icon="send"
+        size="md"
+        color="primary"
         onClick={handleSubmit}
+        disabled={!inputValue || navigation.state === 'submitting'}
       />
-
-      <div className='state-layer'></div>
     </motion.div>
   );
 };
