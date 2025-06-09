@@ -2,13 +2,16 @@
  * Node modules
  */
 import { motion } from 'framer-motion';
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useContext } from 'react';
 import { useNavigation, useSubmit, useParams } from 'react-router-dom';
 
 /**
  * Components
  */
 import { IconBtn } from './Button';
+// Fix the import path to point to the contexts folder
+import { PromptInputContext } from '../contexts/PromptInputContext';
+import { useEditPrompt } from '../contexts/EditPromptContext';
 
 const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) => {
   // Provide a fallback ref if none is passed
@@ -19,6 +22,8 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
   const submit = useSubmit();
   const navigation = useNavigation();
   const { conversationId } = useParams();
+  const { promptInputValue, setPromptInputValue, promptInputRef } = useContext(PromptInputContext);
+  const { editingId, setEditingId } = useEditPrompt();
 
   // Placeholder and multiline logic
   const placeholderShown = !inputValue;
@@ -63,6 +68,7 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
       {
         user_prompt: inputValue,
         request_type: 'user_prompt',
+        ...(editingId ? { editing_id: editingId } : {}),
       },
       {
         method: 'POST',
@@ -72,7 +78,8 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
     );
     setInputValue('');
     if (inputRef.current) inputRef.current.innerText = '';
-  }, [inputValue, navigation.state, submit, conversationId, setInputValue, inputRef]);
+    if (editingId) setEditingId(null); // Reset editing after submit
+  }, [inputValue, navigation.state, submit, conversationId, setInputValue, inputRef, editingId, setEditingId]);
 
   const promptFieldVariant = {
     hidden: { scaleX: 0 },
