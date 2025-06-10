@@ -2,7 +2,7 @@
  * Node modules
  */
 import { motion } from 'framer-motion';
-import { useLoaderData, useLocation, useNavigate, useSubmit, useParams, useRevalidator } from 'react-router-dom';
+import { useLoaderData, useLocation, useNavigate, useSubmit, useParams, useRevalidator, useNavigation } from 'react-router-dom';
 import { useState, memo, useEffect } from 'react';
 
 /**
@@ -42,7 +42,7 @@ const AiBubble = memo(function AiBubble({
         <Typewriter
           key={chat.$id}
           text={chat.ai_response || ''}
-          speed={3}
+          speed={2}
           onDone={() => {
             setTypewriterDoneId(chat.$id);
             if (justEditedId === chat.$id) setJustEditedId(null); // <-- clear after animation
@@ -104,6 +104,7 @@ const Conversation = () => {
   const submit = useSubmit();
   const { conversationId } = useParams();
   const { revalidate } = useRevalidator();
+  const navigation = useNavigation();
 
   // State to track which AI response is being copied (by chat id)
   const [copiedId, setCopiedId] = useState(null);
@@ -189,6 +190,14 @@ const Conversation = () => {
       visibleChats = chats.slice(0, editIdx + 1);
     }
   }
+
+  const lastVisibleChat = visibleChats[visibleChats.length - 1];
+  const lastIsAi = lastVisibleChat && lastVisibleChat.ai_response;
+  const shouldDisablePrompt =
+    lastIsAi && typewriterDoneId !== lastVisibleChat.$id;
+
+  // Show stop icon if submitting or typewriter is running
+  const loading = shouldDisablePrompt || navigation.state === 'submitting';
 
   return (
     <>
