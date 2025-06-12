@@ -182,7 +182,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className={`
     sidebar
-    w-64
+    w-80
     ${isDesktop ? 'static' : 'fixed'}
     top-0
     left-0
@@ -242,6 +242,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                       className='nav-link relative z-10'
                       title={item.title}
                       tabIndex={isRenaming ? -1 : 0}
+                      onClick={() => {
+                        if (!isDesktop && typeof toggleSidebar === 'function') {
+                          toggleSidebar();
+                        }
+                      }}
                     >
                       <span className='material-symbols-rounded icon-small'>chat_bubble</span>
                       {isRenaming ? (

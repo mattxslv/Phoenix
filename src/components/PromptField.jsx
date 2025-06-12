@@ -234,6 +234,13 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
                     'unique()',
                     file
                   );
+                  let fileText = '';
+                  if (file.type === 'text/plain') {
+                    fileText = await file.text();
+                  }
+                  // TODO: Add PDF/DOCX extraction here
+
+                  // Save fileText to state for later use
                   setUploadedFiles(prev => [
                     ...prev,
                     {
@@ -241,6 +248,7 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
                       name: file.name,
                       mimeType: file.type,
                       bucketId: response.bucketId,
+                      content: fileText, // <-- add extracted text
                     }
                   ]);
                 } catch (err) {
