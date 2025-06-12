@@ -205,7 +205,7 @@ const Conversation = () => {
       <PageTitle title={`${title} | Phoenix`} />
 
       <motion.div
-        className='max-w-4xl mx-auto !will-change-auto'
+        className="max-w-4xl mx-auto px-0 !will-change-auto"
         initial={!location.state?._isRedirect && { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2, delay: 0.05, ease: 'easeOut' }}

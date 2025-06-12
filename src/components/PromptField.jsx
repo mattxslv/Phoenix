@@ -111,7 +111,7 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
 
   return (
     <motion.div
-      className={`prompt-field-container ${isMultiline ? 'rounded-large' : ''} relative pb-14`}
+      className="prompt-field-container rounded-large relative pb-14"
       variants={promptFieldVariant}
       initial="hidden"
       animate="visible"

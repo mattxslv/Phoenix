@@ -58,6 +58,17 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   // State for delete confirmation modal
   const [confirmDelete, setConfirmDelete] = useState({ open: false, chat: null });
 
+  // State for toast notifications
+  const [toast, setToast] = useState({ open: false, message: '' });
+  const [toastClosing, setToastClosing] = useState(false);
+
+  const showToast = (message) => {
+    setToast({ open: true, message });
+    setToastClosing(false);
+    setTimeout(() => setToastClosing(true), 2700); // Start fade-out before hiding
+    setTimeout(() => setToast({ open: false, message: '' }), 3000);
+  };
+
   // Close menu on outside click
   useEffect(() => {
     if (!menuOpenId) return;
@@ -127,6 +138,10 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         title: confirmDelete.chat.title,
         submit,
       });
+      setLocalConversations(prev =>
+        prev.filter(c => c.$id !== confirmDelete.chat.$id)
+      );
+      showToast(`Deleted "${confirmDelete.chat.title}"`);
     }
     setConfirmDelete({ open: false, chat: null });
   };
@@ -167,7 +182,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className={`
     sidebar
-    w-80
+    w-64
     ${isDesktop ? 'static' : 'fixed'}
     top-0
     left-0
@@ -189,7 +204,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             height: '100vh',   // <-- Ensure it fills the viewport
           }}
         >
-          <div className='h-16 grid items-center px-4 mb-4'>
+          <div className='h-16 grid items-center px-4 mb-4 mt-4'>
             <Logo />
           </div>
 
@@ -328,6 +343,13 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Toast notification */}
+          {toast.open && (
+            <div className={`fixed bottom-6 right-6 z-[20010] bg-gray-900 text-white px-4 py-2 rounded shadow-lg ${toastClosing ? 'animate-fade-out' : 'animate-fade-in'}`}>
+              {toast.message}
+            </div>
           )}
 
           <div className='mt-4 h-14 px-4 grid items-center text-labelLarge text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant border-t border-light-surfaceContainerHigh dark:border-dark-surfaceContainerHigh truncate'>

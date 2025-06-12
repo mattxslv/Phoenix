@@ -773,4 +773,20 @@
   .icon-small {
     @apply text-[18px];
   }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s;
+  }
+
+  @keyframes fade-out {
+  from { opacity: 1; transform: translateY(0);}
+  to { opacity: 0; transform: translateY(20px);}
+}
+.animate-fade-out {
+  animation: fade-out 0.3s;
+}
 }

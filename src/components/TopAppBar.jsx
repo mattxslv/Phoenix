@@ -167,7 +167,7 @@ const TopAppBar = ({ toggleSidebar }) => {
 
       <AnimatePresence>
         {isNormalLoad && (
-          <LinearProgress classes='absolute top-full left-0 right-0 z-10' />
+          <LinearProgress classes="fixed top-0 left-0 right-0 z-50" />
         )}
       </AnimatePresence>
     </header>
