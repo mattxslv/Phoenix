@@ -220,7 +220,7 @@ const Conversation = () => {
 
           return (
             <div key={chat.$id} className="flex flex-col gap-6 my-8">
-              {/* UserPrompt aligned right */}
+              {/* UserPrompt bubble */}
               {isEditing ? (
                 <EditPromptBubble
                   initialValue={chat.user_prompt}
@@ -229,11 +229,9 @@ const Conversation = () => {
                   loading={editLoading}
                 />
               ) : (
-                <div className="flex justify-end">
-                  <div className="relative max-w-[70%] w-fit group">
-                    <div className="bg-white/90 text-gray-900 px-5 py-2 rounded-full text-right shadow break-words border border-gray-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
-                      <span className="break-words text-right">{chat.user_prompt}</span>
-                    </div>
+                <div className="flex w-full justify-end group">
+                  <div className="user-prompt-bubble bg-gray-200 dark:bg-neutral-700 text-gray-900 dark:text-white relative">
+                    <span className="break-words text-left">{chat.user_prompt}</span>
                     <div className="absolute -bottom-8 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <IconBtn
                         icon="edit"

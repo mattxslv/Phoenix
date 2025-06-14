@@ -21,6 +21,7 @@ import deleteConversation from '../utils/deleteConversation';
  * Custom hooks
  */
 import { useToggle } from '../hooks/useToggle';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 
 /**
  * Components
@@ -30,15 +31,17 @@ import Menu from './Menu';
 import MenuItem from './MenuItem';
 import { LinearProgress } from './Progress';
 import Logo from './Logo';
+import logoDark from '../assets/logo-dark.svg';
+import logoDarkNoIcon from '../assets/logo-dark_no_icon.svg';
 
 // Default user SVG icon (generic user silhouette)
 const DefaultUserIcon = () => (
   <svg
-    width="32"
-    height="32"
+    width="24"
+    height="24"
     viewBox="0 0 32 32"
     fill="none"
-    className="rounded-full bg-light-outlineVariant dark:bg-dark-outlineVariant"
+    className="w-6 h-6 rounded-full bg-light-outlineVariant dark:bg-dark-outlineVariant"
     xmlns="http://www.w3.org/2000/svg"
   >
     <circle cx="16" cy="16" r="16" fill="none" />
@@ -78,6 +81,7 @@ const TopAppBar = ({ toggleSidebar }) => {
   const params = useParams();
   const submit = useSubmit();
   const [showMenu, setShowMenu] = useToggle();
+  const isDesktop = useIsDesktop();
 
   const isNormalLoad = navigation.state === 'loading' && !navigation.formData;
 
@@ -113,49 +117,60 @@ const TopAppBar = ({ toggleSidebar }) => {
   }
 
   return (
-    <header className='relative flex justify-between items-center h-16 px-4'>
-      <div className='flex items-center gap-1'>
+    <header className='relative flex items-center h-16 px-4'>
+      {/* Left: Menu button (mobile only) */}
+      <div className='flex items-center gap-1 flex-1'>
         <IconBtn
           icon='menu'
           title='Menu'
           classes='lg:hidden'
           onClick={toggleSidebar}
         />
-
-        <Logo classes='lg:hidden' />
       </div>
 
-      {params.conversationId && (
-        <IconBtn
-          icon='delete'
-          classes='ms-auto me-1 lg:hidden'
-          onClick={() => {
-            const { title } = conversations.documents.find(
-              ({ $id }) => params.conversationId === $id,
-            );
-
-            deleteConversation({
-              id: params.conversationId,
-              title,
-              submit,
-            });
-          }}
-        />
-      )}
-
-      <div className='menu-wrapper flex items-center gap-2'>
-        <IconBtn onClick={setShowMenu}>
-          {googlePhoto ? (
+      {/* Center: Logo */}
+      <div className={`absolute left-0 right-0 flex justify-center items-center pointer-events-none`}>
+        {!isDesktop && (
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="bg-transparent border-none p-0 m-0 pointer-events-auto"
+            aria-label="Home"
+            tabIndex={0}
+            style={{ lineHeight: 0, display: 'inline-block' }}
+          >
             <img
-              src={googlePhoto}
-              alt={user.name}
-              className="w-8 h-8 rounded-full object-cover"
-              referrerPolicy="no-referrer"
+              src={logoDarkNoIcon}
+              alt="Phoenix Logo"
+              className="h-6 w-auto"
+              style={{ objectFit: 'contain', display: 'block' }}
             />
-          ) : (
-            <DefaultUserIcon />
-          )}
-        </IconBtn>
+          </button>
+        )}
+      </div>
+
+      {/* Right: Actions */}
+      <div className='menu-wrapper flex items-center gap-2 flex-1 justify-end'>
+        {!isDesktop ? (
+          <IconBtn
+            icon="add"
+            title="New Chat"
+            onClick={() => navigate('/')}
+          />
+        ) : (
+          <IconBtn onClick={setShowMenu}>
+            {googlePhoto ? (
+              <img
+                src={googlePhoto}
+                alt={user.name}
+                className="w-8 h-8 rounded-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <DefaultUserIcon />
+            )}
+          </IconBtn>
+        )}
 
         <Menu classes={showMenu ? 'active' : ''}>
           <MenuItem

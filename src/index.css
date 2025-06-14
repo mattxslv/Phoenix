@@ -427,7 +427,6 @@
     h-dvh
     w-0
     max-w-[80vw]
-    rounded-e-large
     shadow-elevation1
     overflow-hidden
     transition-[width]
@@ -442,7 +441,7 @@
     lg:static
     lg:opacity-100
     lg:visible
-    lg:w-full
+    lg:w-64
     lg:shadow-none
     lg:rounded-none;
   }
@@ -610,16 +609,33 @@
     max-h-[230px]
     overflow-y-auto
     whitespace-pre-wrap
-    
-    /* ::after */
+
     after:content-[attr(data-placeholder)]
     after:text-light-onSurfaceVariant/90
     after:dark:text-dark-onSurfaceVariant/90
     after:absolute
     after:left-0
-    after:top-1/2
-    after:-translate-y-1/2
-    after:pointer-events-none;
+    after:top-0
+    after:translate-y-0
+    after:pointer-events-none
+    after:pt-3;
+  }
+
+  .prompt-field:empty:before {
+    text-align: left !important;
+    display: block;
+    width: 100%;
+    padding-right: 1rem;   /* matches pr-4 */
+    padding-bottom: 2.5rem; /* matches pb-10 */
+    padding-left: 0;        /* matches no pl on prompt-field */
+    padding-top: 0;         /* matches no pt on prompt-field */
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 1024px) {
+    .prompt-field:empty:before {
+      padding-bottom: 1rem; /* matches lg:pb-4 */
+    }
   }
 
   /**
@@ -738,6 +754,14 @@
     dark:bg-dark-surfaceContainerHighest
     my-3
     rounded-extraSmall;
+  }
+
+  /**
+   * User Prompt Bubble
+   */
+  .user-prompt-bubble {
+    @apply bg-gray-200 dark:bg-neutral-700 text-gray-900 dark:text-white
+      rounded-[24px] py-4 px-6 max-w-[600px] my-3 text-[1.1rem] font-medium shadow;
   }
 }
 

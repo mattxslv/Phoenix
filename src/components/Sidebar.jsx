@@ -17,6 +17,8 @@ import deleteConversation from '../utils/deleteConversation';
  */
 import Logo from './Logo';
 import { IconBtn } from './Button';
+import logoDark from '../assets/logo-dark.svg';
+import logoIcon from '../assets/logo-icon.svg';
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
@@ -177,55 +179,69 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         animate={
           isDesktop
             ? { x: 0 }
-            : { x: isSidebarOpen ? 0 : -320 }
+            : { x: isSidebarOpen ? 0 : '-100%' }
         }
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
         className={`
-    sidebar
-    w-80
-    ${isDesktop ? 'static' : 'fixed'}
-    top-0
-    left-0
-    h-full
-    z-40
-    bg-white
-    dark:bg-neutral-900
-    transition-transform
-    duration-300
-  `}
+          sidebar
+          w-64
+          lg:w-80
+          ${isDesktop ? 'static' : 'fixed'}
+          top-0
+          left-0
+          h-full
+          z-40
+          bg-white
+          dark:bg-neutral-900
+          transition-transform
+          duration-150
+        `}
       >
-        <div
-          className="sidebar-inner h-full flex flex-col"
-          style={{
-            opacity: 1,
-            visibility: 'visible',
-            zIndex: 10000,
-            overflowY: 'auto', // <-- Add this line
-            height: '100vh',   // <-- Ensure it fills the viewport
-          }}
-        >
-          <div className='h-16 grid items-center px-4 mb-4 mt-4'>
-            <Logo />
+        <div className="sidebar-inner h-full flex flex-col lg:pl-6" style={{ opacity: 1, visibility: 'visible', zIndex: 10000, overflowY: 'auto', height: '100vh' }}>
+          <div className='flex items-center justify-between px-3' style={{ height: isDesktop ? 64 : 48, marginTop: isDesktop ? 16 : 4, marginBottom: isDesktop ? 16 : 4 }}>
+            <button
+              onClick={() => {
+                handleNewChat();
+                if (!isDesktop) toggleSidebar();
+              }}
+              className="p-0 bg-transparent border-none cursor-pointer"
+              style={{ lineHeight: 0, display: 'inline-block' }}
+              aria-label="New chat"
+            >
+              <img
+                src={isDesktop ? logoDark : logoIcon}
+                alt="Phoenix Logo"
+                className={isDesktop ? "h-7 w-auto" : "h-6 w-auto"}
+                style={{ objectFit: 'contain', display: 'block' }}
+              />
+            </button>
+            {!isDesktop && (
+              <button
+                onClick={toggleSidebar}
+                aria-label="Close sidebar"
+                style={{ marginRight: -8 }}
+              >
+                <span className="material-symbols-rounded text-xl">close</span>
+              </button>
+            )}
           </div>
 
           <button
             type="button"
-            className={`relative flex items-center gap-2 px-4 py-2 mb-4 rounded-full text-primary transition overflow-hidden group
+            className={`relative flex items-center gap-2 px-2 py-2 mb-4 rounded-full text-primary transition overflow-hidden group
     ${!conversationId ? 'text-gray-400 cursor-not-allowed hover:bg-transparent group-hover:bg-transparent group-focus:bg-transparent' : ''}`}
-            onClick={handleNewChat}
+            onClick={() => {
+              handleNewChat();
+              if (!isDesktop) toggleSidebar();
+            }}
             disabled={!conversationId}
           >
             <span className="material-symbols-rounded">add</span>
             <span>New chat</span>
-            <div
-              className={`state-layer absolute inset-0 rounded-full pointer-events-none transition
-      ${!conversationId ? '' : 'group-hover:bg-gray-100 group-focus:bg-gray-100'}`}
-            ></div>
           </button>
 
           <div className='overflow-y-auto -me-2 pe-1'>
-            <p className='text-titleSmall h-9 grid items-center px-4'>Chats</p>
-
+            <p className='text-titleSmall h-9 grid items-center px-2 text-gray-400 dark:text-gray-500 font-semibold'>Chats</p>
             <nav>
               {localConversations.map((item) => {
                 const isMenuOpen = menuOpenId === item.$id;
@@ -233,27 +249,25 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 return (
                   <div key={item.$id} className="relative group overflow-visible">
                     {/* Only show .state-layer when NOT renaming */}
-                    {!isRenaming && (
-                      <div className="state-layer absolute inset-0 rounded-full pointer-events-none transition
-    group-hover:bg-gray-100 group-focus-within:bg-gray-100 focus-within:bg-gray-100 z-0"></div>
-                    )}
+
                     <NavLink
                       to={item.$id}
-                      className='nav-link relative z-10'
+                      className={({ isActive }) =>
+                        `nav-link relative z-10 px-2 pr-8 flex items-center gap-2
+    ${isActive
+      ? 'bg-gray-200 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl'
+      : 'lg:hover:bg-gray-100 lg:dark:hover:bg-neutral-700 rounded-xl transition-colors'}`
+                      }
                       title={item.title}
                       tabIndex={isRenaming ? -1 : 0}
                       onClick={() => {
-                        if (!isDesktop && typeof toggleSidebar === 'function') {
-                          toggleSidebar();
-                        }
+                        if (!isDesktop) toggleSidebar();
                       }}
                     >
-                      <span className='material-symbols-rounded icon-small'>chat_bubble</span>
                       {isRenaming ? (
                         <input
                           ref={inputRef}
-                          className="truncate bg-transparent outline-none border-none w-full h-12 font-normal rounded-full px-4 transition
-      hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
+                          className="truncate bg-transparent outline-none border-none w-full h-12 font-normal px-2"
                           value={renameValue}
                           onChange={e => setRenameValue(e.target.value)}
                           onBlur={() => finishRename(item)}
@@ -264,16 +278,20 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                               setRenamingId(null);
                             }
                           }}
+                          style={{ maxWidth: 'calc(100% - 2rem)' }}
                         />
                       ) : (
-                        <span className='truncate'>{item.title}</span>
+                        <span className='truncate block grow mr-6 lg:mr-0'>{item.title}</span>
                       )}
                     </NavLink>
                     <button
                       ref={el => buttonRefs.current[item.$id] = el}
                       type="button"
-                      className="absolute top-1/2 right-1.5 -translate-y-1/2 z-40 p-1 rounded-full 
-          opacity-0 group-hover:opacity-100 transition bg-transparent h-8 flex items-center justify-center"
+                      className={`
+    absolute top-1/2 right-1.5 -translate-y-1/2 z-40 p-1 rounded-xl
+    opacity-100 transition bg-transparent h-8 flex items-center justify-center
+    lg:opacity-0 lg:group-hover:opacity-100
+  `}
                       onClick={e => {
                         e.stopPropagation();
                         handleMenuOpen(e, item.$id);

@@ -26,10 +26,10 @@ const UserPrompt = ({ text }) => {
   }, [textBoxRef, text]);
 
   return (
-    <div className="flex justify-end w-full">
-      <div className="bg-white/90 text-gray-900 px-5 py-2 rounded-full max-w-[70%] w-fit min-w-0 text-right shadow break-words border border-gray-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
+    <div className="flex w-full justify-center lg:justify-end">
+      <div className="user-prompt-bubble">
         <span
-          className={`text-bodyLarge whitespace-pre-wrap ${!isExpanded ? 'line-clamp-4' : ''}`}
+          className="whitespace-pre-wrap break-words"
           ref={textBoxRef}
           style={{ marginBottom: 0, marginTop: 0, display: 'block' }}
         >

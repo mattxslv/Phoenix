@@ -16,6 +16,7 @@ import {
 import { useToggle } from './hooks/useToggle';
 import { useSnackbar } from './hooks/useSnackbar';
 import { usePromptPreloader } from './hooks/userPromptPreloader';
+import { useIsDesktop } from './hooks/useIsDesktop';
 
 /**
  * Components
@@ -65,6 +66,8 @@ const App = () => {
 
   const [editingId, setEditingId] = useState(null);
 
+  const isDesktop = useIsDesktop();
+
   /**
    * This useEffect hook is triggered whenever the `promptPreloaderValue` or `chatHistoryRef` changes.
    * Inside the hook, we get the current HTML element referenced by `chatHistoryRef`.
@@ -102,7 +105,7 @@ const App = () => {
     <EditPromptContext.Provider value={{ editingId, setEditingId }}>
       <>
         {/* Meta title */}
-        <PageTitle title='Phoenix - chat to supercharge your ideas' />
+        <PageTitle title='Phoenix - Chat to supercharge your ideas' />
 
         <div className='lg:grid lg:grid-cols-[320px,1fr]'>
           {/* Sidebar */}
@@ -138,22 +141,24 @@ const App = () => {
                   inputRef={promptInputRef}
                 />
 
-                <motion.p
-                  initial={{ opacity: 0, translateY: '-4px' }}
-                  animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ duration: 0.2, delay: 0.8, ease: 'easeOut' }}
-                  className='text-bodySmall text-center text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant p-3'
-                >
-                  Phoenix may display inaccurate info, including about people, so
-                  double-check its responses.
-                  <a
-                    href='https://support.google.com/gemini?p=privacy_notice'
-                    target='_blank'
-                    className='inline underline ms-1'
+                {isDesktop && (
+                  <motion.p
+                    initial={{ opacity: 0, translateY: '-4px' }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ duration: 0.2, delay: 0.8, ease: 'easeOut' }}
+                    className='text-bodySmall text-center text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant p-3'
                   >
-                    Your privacy & Gemini Apps
-                  </a>
-                </motion.p>
+                    Phoenix may display inaccurate info, including about people, so
+                    double-check its responses.
+                    <a
+                      href='https://support.google.com/gemini?p=privacy_notice'
+                      target='_blank'
+                      className='inline underline ms-1'
+                    >
+                      Your privacy & Gemini Apps
+                    </a>
+                  </motion.p>
+                )}
               </div>
             </div>
           </div>

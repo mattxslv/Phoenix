@@ -111,7 +111,7 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
 
   return (
     <motion.div
-      className="prompt-field-container rounded-large relative pb-14"
+      className="prompt-field-container rounded-large relative pb-8 mb-4 lg:pb-14 lg:mb-0"
       variants={promptFieldVariant}
       initial="hidden"
       animate="visible"
@@ -186,7 +186,7 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
 
       {/* Full-width input area */}
       <motion.div
-        className={`prompt-field w-full pr-4 pb-4 ${placeholderShown ? '' : 'after:hidden'}`}
+        className={`prompt-field w-full pr-4 pb-10 lg:pb-4 text-left ${placeholderShown ? '' : 'after:hidden'}`}
         contentEditable
         role="textbox"
         aria-multiline="true"
@@ -202,7 +202,10 @@ const PromptField = ({ inputValue, setInputValue, inputRef: externalInputRef }) 
             handleSubmit();
           }
         }}
-        style={{ minHeight: 48 }}
+        style={{
+          minHeight: 48,
+          textAlign: 'left', // <-- force left alignment for text and placeholder
+        }}
       />
 
       {/* Bottom left: Add photo & upload file */}
