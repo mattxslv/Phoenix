@@ -3,19 +3,19 @@
  */
 import {
   useNavigation,
-  useNavigate,
   useLoaderData,
   useParams,
   useSubmit,
 } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
+import React, { useRef, useEffect, useState } from 'react';
 
 /**
  * Custom modules
  */
-import logout from '../utils/logout';
-import deleteConversation from '../utils/deleteConversation';
+import { logout } from '../utils/logout';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Custom hooks
@@ -82,6 +82,9 @@ const TopAppBar = ({ toggleSidebar }) => {
   const submit = useSubmit();
   const [showMenu, setShowMenu] = useToggle();
   const isDesktop = useIsDesktop();
+  const [isPlusActive, setIsPlusActive] = useState(false);
+  const plusBtnRef = useRef(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const isNormalLoad = navigation.state === 'loading' && !navigation.formData;
 
@@ -115,6 +118,40 @@ const TopAppBar = ({ toggleSidebar }) => {
       console.log('prefs.' + key, value);
     });
   }
+
+  // Detect click outside to deactivate plus button
+  useEffect(() => {
+    if (!isPlusActive) return;
+    function handleClickOutside(e) {
+      if (plusBtnRef.current && !plusBtnRef.current.contains(e.target)) {
+        setIsPlusActive(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isPlusActive]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showUserMenu) return;
+    function handleClickOutside(event) {
+      const modal = document.getElementById('topbar-user-logout-modal');
+      const btn = document.getElementById('topbar-user-profile-btn');
+      if (
+        modal &&
+        !modal.contains(event.target) &&
+        btn &&
+        !btn.contains(event.target)
+      ) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
+
+  // Disable if on the root page (no conversation)
+  const isRootPage = !params.conversationId;
 
   return (
     <header className='relative flex items-center h-16 px-4'>
@@ -151,33 +188,85 @@ const TopAppBar = ({ toggleSidebar }) => {
 
       {/* Right: Actions */}
       <div className='menu-wrapper flex items-center gap-2 flex-1 justify-end'>
-        {!isDesktop ? (
-          <IconBtn
-            icon="add"
-            title="New Chat"
-            onClick={() => navigate('/')}
-          />
-        ) : (
-          <IconBtn onClick={setShowMenu}>
-            {googlePhoto ? (
-              <img
-                src={googlePhoto}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <DefaultUserIcon />
-            )}
-          </IconBtn>
-        )}
+        <div className="relative">
+          {/* Desktop: show user profile and dropdown (unchanged) */}
+          {isDesktop ? (
+            <button
+              id="topbar-user-profile-btn"
+              className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+              style={{ minWidth: 0, justifyContent: 'flex-start' }}
+              onClick={() => setShowUserMenu(v => !v)}
+            >
+              {googlePhoto ? (
+                <img
+                  src={googlePhoto}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="material-symbols-rounded w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-neutral-700 rounded-full text-2xl text-gray-600 dark:text-gray-300">
+                  account_circle
+                </span>
+              )}
+              <span className="font-medium text-xs truncate max-w-[100px]">
+                {user.name
+                  ? (() => {
+                      const parts = user.name.trim().split(' ');
+                      if (parts.length === 1) return parts[0];
+                      return `${parts[0]} ${parts[parts.length - 1]}`;
+                    })()
+                  : ''}
+              </span>
+              <span className="material-symbols-rounded ml-1 text-lg flex items-center justify-center h-8">
+                expand_more
+              </span>
+            </button>
+          ) : (
+            // Mobile: show plus button for new chat, no hover/click background
+            <button
+              id="topbar-add-chat-btn"
+              className="flex items-center justify-center p-0 m-0 bg-transparent border-none shadow-none outline-none"
+              style={{
+                background: 'none',
+                boxShadow: 'none',
+                outline: 'none',
+                minWidth: 0,
+                borderRadius: 0,
+                opacity: !params.conversationId ? 0.5 : 1, // visually indicate disabled
+                pointerEvents: !params.conversationId ? 'none' : 'auto', // actually disable
+              }}
+              onClick={() => navigate('/')}
+              tabIndex={0}
+              aria-label="New chat"
+              disabled={!params.conversationId}
+            >
+              <span className="material-symbols-rounded text-3xl leading-none select-none pointer-events-none">
+                add
+              </span>
+            </button>
+          )}
 
-        <Menu classes={showMenu ? 'active' : ''}>
-          <MenuItem
-            labelText='Log out'
-            onClick={() => logout(navigate)}
-          />
-        </Menu>
+          {/* Desktop: show dropdown for logout */}
+          {isDesktop && showUserMenu && (
+            <div
+              id="topbar-user-logout-modal"
+              className="absolute right-0 top-12 z-50 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden min-w-[160px]"
+            >
+              <button
+                className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-neutral-800 transition text-sm"
+                onClick={async () => {
+                  setShowUserMenu(false);
+                  await logout();
+                  navigate('/login');
+                }}
+              >
+                <span className="material-symbols-rounded align-middle mr-2">logout</span>
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -188,6 +277,7 @@ const TopAppBar = ({ toggleSidebar }) => {
     </header>
   );
 };
+
 TopAppBar.propTypes = {
   toggleSidebar: PropTypes.func,
 };

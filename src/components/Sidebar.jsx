@@ -11,6 +11,7 @@ import React from 'react';
  * Custom modules
  */
 import deleteConversation from '../utils/deleteConversation';
+import { logout } from '../utils/logout';
 
 /**
  * Components
@@ -31,9 +32,8 @@ function useIsDesktop() {
 }
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
-  // Extract conversations from loader data if it exists.
-
-  const { conversations } = useLoaderData() || {};
+  // Extract conversations and user from loader data if they exist.
+  const { conversations, user } = useLoaderData() || {};
   const conversationData = conversations?.documents || [];
 
   // Extract the conversationId from the URL parameters using useParams.
@@ -41,7 +41,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
 
   // Get a reference to the useSubmit function for submitting forms.
   const submit = useSubmit();
-  const navigate = useNavigate(); // Add this line
+  const navigate = useNavigate();
 
   // State to track which chat's menu is open
   const [menuOpenId, setMenuOpenId] = useState(null);
@@ -63,6 +63,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   // State for toast notifications
   const [toast, setToast] = useState({ open: false, message: '' });
   const [toastClosing, setToastClosing] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false); // <-- Add this line
 
   const showToast = (message) => {
     setToast({ open: true, message });
@@ -172,6 +173,28 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
 
   const isDesktop = useIsDesktop();
 
+  // Add this hook near your other useEffect hooks
+  useEffect(() => {
+    if (!showUserMenu) return;
+    function handleClickOutside(event) {
+      // Close if click is outside the modal and button
+      const modal = document.getElementById('user-logout-modal');
+      const btn = document.getElementById('user-profile-btn');
+      if (
+        modal &&
+        !modal.contains(event.target) &&
+        btn &&
+        !btn.contains(event.target)
+      ) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
+
+  console.log('Sidebar user:', user);
+
   return (
     <>
       <motion.div
@@ -256,7 +279,8 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                         `nav-link relative z-10 px-2 pr-8 flex items-center gap-2
     ${isActive
       ? 'bg-gray-200 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl'
-      : 'lg:hover:bg-gray-100 lg:dark:hover:bg-neutral-700 rounded-xl transition-colors'}`
+      : 'rounded-xl transition-colors'}
+    hover:bg-gray-100 dark:hover:bg-neutral-700`
                       }
                       title={item.title}
                       tabIndex={isRenaming ? -1 : 0}
@@ -288,10 +312,10 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                       ref={el => buttonRefs.current[item.$id] = el}
                       type="button"
                       className={`
-    absolute top-1/2 right-1.5 -translate-y-1/2 z-40 p-1 rounded-xl
-    opacity-100 transition bg-transparent h-8 flex items-center justify-center
-    lg:opacity-0 lg:group-hover:opacity-100
-  `}
+      absolute top-1/2 right-1.5 -translate-y-1/2 z-40 p-1 rounded-xl
+      bg-transparent h-8 flex items-center justify-center
+      lg:opacity-0 lg:group-hover:opacity-100
+    `}
                       onClick={e => {
                         e.stopPropagation();
                         handleMenuOpen(e, item.$id);
@@ -375,12 +399,71 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             </div>
           )}
 
-          <div className='mt-4 h-14 px-4 grid items-center text-labelLarge text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant border-t border-light-surfaceContainerHigh dark:border-dark-surfaceContainerHigh truncate'>
-            &copy; 2024 mattxslv
+          {/* Main content */}
+          <div className="flex-1 flex flex-col">
+            {/* ...your logo, new chat button, chats list, etc... */}
+          </div>
+
+          {/* Bottom section: horizontal line, user, copyright */}
+          <div className="mt-0 relative">
+            {/* Horizontal line */}
+            <div className="border-t border-light-surfaceContainerHigh dark:border-dark-surfaceContainerHigh w-full mb-1"></div>
+            
+            {/* User section for mobile only */}
+            <div className="lg:hidden px-2 pb-2 pt-2 relative flex">
+              {/* Logout modal */}
+              {showUserMenu && (
+                <div
+                  id="user-logout-modal"
+                  className="absolute left-0 right-0 -top-16 z-50 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden"
+                >
+                  <button
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-neutral-800 transition text-sm"
+                    onClick={async () => {
+                      setShowUserMenu(false);
+                      await logout(); // Make sure logout clears session/token
+                      navigate('/login'); // This will redirect to your login page
+                    }}
+                  >
+                    <span className="material-symbols-rounded align-middle mr-2">logout</span>
+                    Log out
+                  </button>
+                </div>
+              )}
+              <button
+                id="user-profile-btn"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition w-full"
+                style={{ minWidth: 0, justifyContent: 'flex-start' }}
+                onClick={() => setShowUserMenu(v => !v)}
+              >
+                {/* Use the same icon as TopAppBar (account_circle, styled as a circle) */}
+                <span className="material-symbols-rounded w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-neutral-700 rounded-full text-xl text-gray-600 dark:text-gray-300">
+                  account_circle
+                </span>
+                <span className="font-medium text-xs truncate">
+                  {user.name
+                    ? (() => {
+                        const parts = user.name.trim().split(' ');
+                        if (parts.length === 1) return parts[0];
+                        // Always show first and last name only
+                        return `${parts[0]} ${parts[parts.length - 1]}`;
+                      })()
+                    : ''}
+                </span>
+                {/* Center the expand_more icon vertically */}
+                <span className="material-symbols-rounded ml-auto text-lg flex items-center justify-center h-7">
+                  expand_more
+                </span>
+              </button>
+            </div>
+
+            {/* Copyright always at the very bottom */}
+            <div className='h-14 px-4 grid items-center text-labelLarge text-light-onSurfaceVariant dark:text-dark-onSurfaceVariant truncate'>
+              &copy; 2024 mattxslv
+            </div>
           </div>
         </div>
       </motion.div>
-
       <div
         className={`overlay ${isSidebarOpen ? 'active' : ''}`}
         onClick={toggleSidebar}

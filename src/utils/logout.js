@@ -1,5 +1,3 @@
-  
-
 /**
  * Custom modules
  */
@@ -14,14 +12,10 @@ import { account } from '../lib/appwrite';
  * @returns {Promise<void>} - Returns a promise that resolves once the session is deleted and navigation occurs.
  * @throws {Error} If there is an issue deleting the user session, the error will be logged to the console.
  */
-const logout = async (navigate) => {
+export async function logout() {
   try {
     await account.deleteSession('current');
-  } catch (err) {
-    return console.log(`Error deleting user session: ${err.message}`);
+  } catch (e) {
+    // Optionally handle error
   }
-
-  return navigate('/login');
-};
-
-export default logout;
+}
